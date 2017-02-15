@@ -1,0 +1,46 @@
+---
+title: "NHL Arenas"
+author: "Will Ives"
+date: "February 14, 2017"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+```{r beginnings, echo = FALSE, message = FALSE, warning = FALSE}
+library(leaflet)
+```
+## R Markdown
+
+The NHL has 30 teams split into 4 divisions each containing 7 or 8 teams. 
+NHL teams are spread accross the USA and Canada with 7 teams in Canada and 23 in the USA.
+
+## Map of NHL Teams
+``` {r map of teams with logos, echo = FALSE, message = FALSE}
+arenas <- read.csv("NHL Arenas.csv")
+
+icons <- makeIcon(arenas$Logo, iconWidth = rep(30,30), iconHeight = rep(30,30))
+
+arenas %>% 
+leaflet() %>%
+addTiles() %>%
+addMarkers(icon = icons)
+```
+
+## Map by Division
+``` {r map of teams by division, echo = FALSE, message = FALSE}
+
+colUsed <- data.frame(color = c("red","blue","green","orange"), Division = c("Pacific","Central","Metropolitan","Atlantic"))
+
+arenas$link <- c(paste(arenas$Team, "<br>", "<a href='",arenas$URL, "/'>",arenas$Arena, "</a>", sep ="" ))
+
+arenas <- merge(arenas, colUsed, by = 'Division')
+
+arenas %>% 
+leaflet() %>%
+addTiles() %>%
+addCircleMarkers(color = arenas$color, popup = arenas$link) %>%
+addLegend(labels = colUsed$Division, colors = colUsed$color)
+
+```
