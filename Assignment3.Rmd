@@ -1,0 +1,58 @@
+---
+title: "Points vs Shooting Percentage"
+author: "Will Ives"
+date: "February 23, 2017"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+library(plotly)
+library(xlsx)
+library(XML)
+```
+
+## Theory
+In the NHL there is a theory that the shooting percentage is fairly consistant for a player in the long run, but highly fluctuates in the short run.  If this is correct then we would expect many of the top goal-scorers to have an unusally high shooting percentage during the season. Therefore we will look at the graph of shooting percentage vs goals during the 2017 season.
+
+``` {r pull in data, echo = FALSE, warnings = FALSE }
+URL <- "http://www.hockey-reference.com/leagues/NHL_2017_skaters.html"
+    tables <- readHTMLTable(URL, header=FALSE)
+    ## for tutorial sake -- its the first table in the list
+    cur <- tables[[1]]
+    
+    ## set columns to characters and set column names
+    cur <- data.frame(lapply(cur, as.character),stringsAsFactors = FALSE)
+    c<- c("Rk","Player","Age","Pos","Tm","GP","G","A","PTS","P.M","PIM","EVG","PPG","SHG","GWG","EVA","PPA","SHA","S","Sp","TOI","ATOI","BLK","HIT","FOW","FOL","FOp" )
+    colnames(cur) <- c
+    ## remove the column breaks
+    cur <- cur[cur$Rk!='Rk',]
+    
+    ## holds the column indexes for the loop
+    index <- c(1,3,6:(ncol(cur)))
+    ## change to numeric
+    for(i in index) {
+      cur[,i] <- as.numeric(cur[,i])
+    }
+    
+    # Fix ATOI and NA's
+    cur$ATOI <- cur$TOI/cur$GP
+    cur[is.na(cur)] <-0
+    
+    # Change Team and Position to factors
+    cur$Tm <- as.factor(cur$Tm)
+    cur$Pos <- as.factor(cur$Pos)
+    cur <- cur[with(cur, order(-G)), ]
+    topp <- head(cur,100)
+```
+
+## Plot of Shots vs Goals in 2017
+```{r plot the graph, warning = FALSE, echo = FALSE, message = FALSE}
+p <- plot_ly(topp, x = ~G, y = ~Sp, type = 'scatter', mode = 'markers',
+        text = ~Player)
+p
+```
+
+## Conclusion
+As you can see in the plot there appears to be a group of players with shooting percentages above 20 that are likely to not score as many goals in the second half of the season as the first.
